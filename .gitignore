@@ -1,0 +1,6 @@
+.vscode
+*.o
+*.pgm
+lepton.js
+**idea**
+**DS_Store**
