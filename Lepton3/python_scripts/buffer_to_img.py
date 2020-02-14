@@ -37,8 +37,6 @@ while True:
                 break
 
         except:
-            import traceback
-            traceback.print_exc()
             continue
 
     prev_txts += txts[:]

@@ -6,7 +6,7 @@
 ```g++ -o spi -pthread -lboost_system -lboost_thread main.cpp SPI.cpp SPI.hpp Lepton.cpp Lepton.hpp```
 
 ### Increasing the SPI Buffer Size
-Increase the spidev buffer size by adding "spidev.buffer=131072" to /boot/cmdline.txt
+Increase the spidev buffer size by adding "spidev.bufsiz=131072" to /boot/cmdline.txt
 ``` 
 sudo /boot/cmdline.txt
 

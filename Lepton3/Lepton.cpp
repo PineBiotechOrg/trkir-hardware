@@ -27,12 +27,12 @@ Lepton::Lepton(SPIConnection *spi_conn)
 : _spi_conn(spi_conn) {
     _rx_buf = new uint8_t[FRAMES_COUNT * FRAME_BUFFER_LENGTH];
     if (!_rx_buf) {
-        perror("Couldn't allocate memory for rx_buf");
+        std::cout << "Couldn't allocate memory for rx_buf";
     }
 
     _image = new uint8_t[FRAME_BUFFER_LENGTH];
     if (!_image) {
-        perror("Couldn't allocate memory for image");
+        std::cout << "Couldn't allocate memory for image";
     }
 }
 

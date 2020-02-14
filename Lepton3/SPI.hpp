@@ -11,6 +11,7 @@
 #include <linux/spi/spidev.h> //  spi_ioc_transfer
 #include <cstring>
 #include <string>
+#include <iostream>
 
 
 #define SPI_DEVICE "/dev/spidev0.0"

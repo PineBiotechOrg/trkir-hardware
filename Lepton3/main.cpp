@@ -1,26 +1,21 @@
 #include <iostream>
-#include <boost/thread.hpp>
+#include <signal.h>
 
 #include "Lepton.hpp"
+#include "SocketServer.hpp"
 
+bool is_keep_streaming = true;
 
-
-// saves frame buffer to txt file
-void save_image(uint8_t *copy_image, int index) {
-    char file_name[124];
-    snprintf(file_name, sizeof(file_name), "%d.txt", index);
-
-    FILE *f = fopen(file_name, "w");
-
-    for (int i = 0; i < FRAME_BUFFER_LENGTH; i++) {
-        fprintf(f, "%d ", copy_image[i]);
-    }
-
-    fclose(f);
+void stop_streaming(int signal) {
+    is_keep_streaming = false;
 }
 
+
 int main(int argc, char const *argv[]) {
+    signal(SIGINT, stop_streaming);
+
     auto *details = new SPIConnectionDetails;
+    int socket_port = 8080;
 
     details->device = SPI_DEVICE;
     details->mode = SPI_MODE;
@@ -34,26 +29,44 @@ int main(int argc, char const *argv[]) {
         auto *copy_image = new uint8_t[FRAME_BUFFER_LENGTH];
         auto *image = new uint8_t[FRAME_BUFFER_LENGTH];
 
+        auto *socket = new SocketServer(socket_port);
+        boost::thread accept_thread{boost::bind(&SocketServer::accept, socket)};
+        accept_thread.detach();
+
         auto *camera = new Lepton(spi_conn);
 
-        for (int s = 0; s < 100; ++s) {
+        std::cout << "Starting streaming...\n";
+        while (is_keep_steaming) {
+
             camera->make_image();
-            camera->get_image();
+            image = camera->get_image();
 
-//            memcpy(copy_image, image, FRAME_BUFFER_LENGTH * sizeof(uint8_t));
-//            boost::thread thread{save_image, copy_image, s};
-//            thread.join();
 
-            printf("next...\n");
+            std::copy(image, image + FRAME_BUFFER_LENGTH, copy_image);
+            socket->send(copy_image, FRAME_BUFFER_LENGTH);
         }
 
-        delete []copy_image;
-        delete []image;
-
-        return 0;
+        if (socket) {
+            delete socket;
+        }
+        if (camera) {
+            delete camera;
+        }
+        if (copy_image) {
+            delete []copy_image;
+        }
+        if (image) {
+            delete []image;
+        }
     } else {
-        perror("Couldn't connect");
-        return -1;
+        std::cout << "Couldn't connect";
     }
-}
+    if (details) {
+        delete details;
+    }
+    if (spi_conn) {
+        delete spi_conn;
+    }
 
+    return 0;
+}

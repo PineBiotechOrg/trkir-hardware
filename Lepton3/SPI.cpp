@@ -9,50 +9,51 @@ SPIConnection::SPIConnection(SPIConnectionDetails *details)
 
     _is_connected = false;
 
-    /* open device */
+    // open device
     _file_descriptor = open(_details->device.c_str(), O_RDWR);
     if (_file_descriptor < 0) {
-        perror("Error open device");
+        // TODO: логирование https://tracker.yandex.ru/VPAGROUPDEV-907
+        std::cout << "Error open device";
         return;
     }
 
-    /* set mode */
+    // set mode
     ret = ioctl(_file_descriptor, SPI_IOC_WR_MODE, &_details->mode);
     if (ret < 0) {
-        perror("Error set SPI-Mode");
+        std::cout << "Error set SPI-Mode";
     }
 
-    /* check mode */
+    // check mode
     ret = ioctl(_file_descriptor, SPI_IOC_RD_MODE, &_details->mode);
     if (ret < 0) {
-        perror("Error get SPI-Mode");
+        std::cout << "Error get SPI-Mode";
     }
 
-    /* set word length */
+    // set word length
     ret = ioctl(_file_descriptor, SPI_IOC_WR_BITS_PER_WORD, &_details->bits);
     if (ret < 0) {
-        perror("Error set word length");
+        std::cout << "Error set word length";
         return;
     }
 
-    /* check word length */
+    // check word length
     ret = ioctl(_file_descriptor, SPI_IOC_RD_BITS_PER_WORD, &_details->bits);
     if (ret < 0) {
-        perror("Error get word length");
+        std::cout << "Error get word length";
         return;
     }
 
-    /* set speed */
+    // set speed
     ret = ioctl(_file_descriptor, SPI_IOC_WR_MAX_SPEED_HZ, &_details->speed);
     if (ret < 0) {
-        perror("Error set speed");
+        std::cout << "Error set speed";
         return;
     }
 
-    /* check speed */
+    // check speed
     ret = ioctl(_file_descriptor, SPI_IOC_RD_MAX_SPEED_HZ, &_details->speed);
     if (ret < 0) {
-        perror("Error get speed");
+        std::cout << "Error get speed";
         return;
     }
 
@@ -79,13 +80,13 @@ void SPIConnection::transfer(uint8_t *tx_buf, uint8_t *rx_buf, size_t length) {
     int ret;
 
     // clear memory
-    memset(&_spi, 0, sizeof(_spi));
+    std::memset(&_spi, 0, sizeof(_spi));
 
     // set spi_ioc_transfer parameters
-    _spi.tx_buf = (unsigned long) tx_buf;
-    _spi.rx_buf = (unsigned long) rx_buf;
+    _spi.tx_buf = static_cast<unsigned long>tx_buf;
+    _spi.rx_buf = static_cast<unsigned long>rx_buf;
     _spi.len = length;
-    _spi.delay_usecs = (uint16_t) SPI_DELAY;  // test different delays and see what works for you
+    _spi.delay_usecs = static_cast<uint16_t>SPI_DELAY;  // test different delays and see what works for you
     _spi.speed_hz = _details->speed;
     _spi.bits_per_word = _details->bits;
     _spi.cs_change = 0;
@@ -93,7 +94,7 @@ void SPIConnection::transfer(uint8_t *tx_buf, uint8_t *rx_buf, size_t length) {
     ret = ioctl(_file_descriptor, SPI_IOC_MESSAGE(1), &_spi);
 
     if (ret < 1) {
-        perror("Can't send / read spi data");
+        std::cout << "Can't send / read spi data";
     }
 }
 
